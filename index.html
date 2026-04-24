@@ -77,7 +77,7 @@
 
     function startPolling() {
       setInterval(async () => {
-        const res = await fetch('https://your-backend-url/result');
+        const res = await fetch('https://onyx-l04o.onrender.com');
         const data = await res.json();
 
         if (data.card) {
