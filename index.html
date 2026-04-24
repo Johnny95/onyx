@@ -87,29 +87,30 @@
   }, 1000);
 }
 
-    function applyCardChange(imageData, card) {
-      alert("Card update: " + card);
-      const img = new Image();
-      img.src = imageData;
+   function applyCardChange(imageData, card) {
+  const img = new Image();
+  img.src = imageData;
 
-      img.onload = () => {
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+  img.onload = () => {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
 
-        ctx.drawImage(img, 0, 0);
+    // Draw original image
+    ctx.drawImage(img, 0, 0);
 
-        const overlay = new Image();
+    // ✅ BIG visible test box
+    ctx.fillStyle = "red";
+    ctx.fillRect(50, 50, 300, 300);
 
-        // ⚠️ TEMP fallback (no card images yet)
-        overlay.src = `https://via.placeholder.com/100x150?text=${card}`;
+    // ✅ Add text (the card)
+    ctx.fillStyle = "white";
+    ctx.font = "bold 50px Arial";
+    ctx.fillText(card, 80, 200);
 
-        overlay.onload = () => {
-          ctx.fillStyle = "red";
-ctx.fillRect(0, 0, 300, 300);
-          document.getElementById('result').src = canvas.toDataURL();
-        };
-      };
-    }
+    // Update image on screen
+    document.getElementById('result').src = canvas.toDataURL();
+  };
+}
   </script>
 
 </body>
