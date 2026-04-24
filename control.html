@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body style="background:black; color:white; text-align:center;">
+
+<h2>Secret Control</h2>
+
+<button onclick="send('AS')">Ace of Spades</button>
+<button onclick="send('KH')">King of Hearts</button>
+<button onclick="send('QC')">Queen of Clubs</button>
+
+<script>
+function send(card) {
+  fetch('https://your-render-url/set_card', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ card })
+  });
+}
+</script>
+
+</body>
+</html>
