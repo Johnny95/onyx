@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Camera Demo</title>
 
-  <!-- Important for mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -46,7 +45,7 @@
   <script>
     const video = document.getElementById('video');
 
-    // Start camera
+    // ✅ Start camera
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => video.srcObject = stream)
       .catch(err => alert("Camera access denied"));
@@ -62,11 +61,11 @@
 
       const data = canvas.toDataURL('image/png');
 
-      // Show image immediately (for now)
+      // ✅ show image immediately
       document.getElementById('result').src = data;
 
-      // Send to backend (we'll wire this up next)
-      fetch('https://your-backend-url/upload', {
+      // ✅ send to backend (FIXED URL)
+      fetch('https://onyx-l04o.onrender.com/upload', {
         method: 'POST',
         body: JSON.stringify({ image: data }),
         headers: { 'Content-Type': 'application/json' }
@@ -77,7 +76,8 @@
 
     function startPolling() {
       setInterval(async () => {
-        const res = await fetch('https://onyx-l04o.onrender.com');
+        // ✅ FIX: must call /result, not root
+        const res = await fetch('https://onyx-l04o.onrender.com/result');
         const data = await res.json();
 
         if (data.card) {
@@ -97,7 +97,9 @@
         ctx.drawImage(img, 0, 0);
 
         const overlay = new Image();
-        overlay.src = `cards/${card}.png`;
+
+        // ⚠️ TEMP fallback (no card images yet)
+        overlay.src = `https://via.placeholder.com/100x150?text=${card}`;
 
         overlay.onload = () => {
           ctx.drawImage(overlay, 200, 200, 100, 150);
