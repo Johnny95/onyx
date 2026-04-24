@@ -43,51 +43,59 @@
   <img id="result"/>
 
   <script>
-    const video = document.getElementById('video');
+const video = document.getElementById('video');
 
-    // ✅ Start camera
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => video.srcObject = stream)
-      .catch(err => alert("Camera access denied"));
+let pollingStarted = false;
+let alreadyUpdated = false;
 
-    function takePhoto() {
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+// Start camera
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => video.srcObject = stream)
+  .catch(err => alert("Camera access denied"));
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+function takePhoto() {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
 
-      ctx.drawImage(video, 0, 0);
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-      const data = canvas.toDataURL('image/png');
+  ctx.drawImage(video, 0, 0);
 
-      // ✅ show image immediately
-      document.getElementById('result').src = data;
+  const data = canvas.toDataURL('image/png');
 
-      // ✅ send to backend (FIXED URL)
-      fetch('https://onyx-l04o.onrender.com/upload', {
-        method: 'POST',
-        body: JSON.stringify({ image: data }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+  document.getElementById('result').src = data;
 
-      startPolling();
-    }
+  fetch('https://onyx-l04o.onrender.com/upload', {
+    method: 'POST',
+    body: JSON.stringify({ image: data }),
+    headers: { 'Content-Type': 'application/json' }
+  });
 
-    function startPolling() {
+  if (!pollingStarted) {
+    startPolling();
+    pollingStarted = true;
+  }
+}
+
+function startPolling() {
   setInterval(async () => {
     const res = await fetch('https://onyx-l04o.onrender.com/result');
     const data = await res.json();
 
-    console.log("Polling result:", data); // 👈 ADD THIS
+    console.log("Polling result:", data);
 
-    if (data.card) {
-      applyCardChange(data.image, data.card);
+    if (data.card && !alreadyUpdated) {
+      alreadyUpdated = true;
+
+      setTimeout(() => {
+        applyCardChange(data.image, data.card);
+      }, 800);
     }
   }, 1000);
 }
 
-   function applyCardChange(imageData, card) {
+function applyCardChange(imageData, card) {
   const img = new Image();
   img.src = imageData;
 
@@ -95,23 +103,23 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // Draw original image
     ctx.drawImage(img, 0, 0);
 
-    // ✅ BIG visible test box
-    ctx.fillStyle = "red";
-    ctx.fillRect(50, 50, 300, 300);
-
-    // ✅ Add text (the card)
     ctx.fillStyle = "white";
-    ctx.font = "bold 50px Arial";
-    ctx.fillText(card, 80, 200);
+    ctx.fillRect(150, 150, 200, 300);
 
-    // Update image on screen
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(150, 150, 200, 300);
+
+    ctx.fillStyle = "black";
+    ctx.font = "bold 40px Arial";
+    ctx.fillText(card, 170, 200);
+
     document.getElementById('result').src = canvas.toDataURL();
   };
 }
-  </script>
+</script>
 
 </body>
 </html>
