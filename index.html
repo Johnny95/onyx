@@ -75,16 +75,17 @@
     }
 
     function startPolling() {
-      setInterval(async () => {
-        // ✅ FIX: must call /result, not root
-        const res = await fetch('https://onyx-l04o.onrender.com/result');
-        const data = await res.json();
+  setInterval(async () => {
+    const res = await fetch('https://onyx-l04o.onrender.com/result');
+    const data = await res.json();
 
-        if (data.card) {
-          applyCardChange(data.image, data.card);
-        }
-      }, 1000);
+    console.log("Polling result:", data); // 👈 ADD THIS
+
+    if (data.card) {
+      applyCardChange(data.image, data.card);
     }
+  }, 1000);
+}
 
     function applyCardChange(imageData, card) {
       const img = new Image();
