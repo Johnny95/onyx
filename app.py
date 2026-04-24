@@ -46,7 +46,7 @@ def result():
 
 @app.route('/')
 def home():
-    return "Server running"
+    return "NEW VERSION LIVE"
 
 
 if __name__ == "__main__":
