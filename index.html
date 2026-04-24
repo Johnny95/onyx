@@ -29,6 +29,7 @@
     img {
       width: 100%;
       margin-top: 10px;
+      transition: opacity 0.3s ease;
     }
   </style>
 </head>
@@ -43,83 +44,122 @@
   <img id="result"/>
 
   <script>
-const video = document.getElementById('video');
+    const video = document.getElementById('video');
 
-let pollingStarted = false;
-let alreadyUpdated = false;
+    let pollingStarted = false;
+    let alreadyUpdated = false;
 
-// Start camera
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => video.srcObject = stream)
-  .catch(err => alert("Camera access denied"));
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => alert("Camera access denied"));
 
-function takePhoto() {
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
+    function takePhoto() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-  ctx.drawImage(video, 0, 0);
+      ctx.drawImage(video, 0, 0);
 
-  const data = canvas.toDataURL('image/png');
+      const data = canvas.toDataURL('image/png');
 
-  document.getElementById('result').src = data;
+      // Show image immediately
+      document.getElementById('result').src = data;
 
-  fetch('https://onyx-l04o.onrender.com/upload', {
-    method: 'POST',
-    body: JSON.stringify({ image: data }),
-    headers: { 'Content-Type': 'application/json' }
-  });
+      // Send to backend
+      fetch('https://onyx-l04o.onrender.com/upload', {
+        method: 'POST',
+        body: JSON.stringify({ image: data }),
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-  if (!pollingStarted) {
-    startPolling();
-    pollingStarted = true;
-  }
-}
+      // Start polling ONLY once
+      if (!pollingStarted) {
+        startPolling();
+        pollingStarted = true;
+      }
 
-function startPolling() {
-  setInterval(async () => {
-    const res = await fetch('https://onyx-l04o.onrender.com/result');
-    const data = await res.json();
-
-    console.log("Polling result:", data);
-
-    if (data.card && !alreadyUpdated) {
-      alreadyUpdated = true;
-
-      setTimeout(() => {
-        applyCardChange(data.image, data.card);
-      }, 800);
+      // Reset update state for new photo
+      alreadyUpdated = false;
     }
-  }, 1000);
-}
 
-function applyCardChange(imageData, card) {
-  const img = new Image();
-  img.src = imageData;
+    function startPolling() {
+      setInterval(async () => {
+        const res = await fetch('https://onyx-l04o.onrender.com/result');
+        const data = await res.json();
 
-  img.onload = () => {
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+        console.log("Polling result:", data);
 
-    ctx.drawImage(img, 0, 0);
+        if (data.card && !alreadyUpdated) {
+          alreadyUpdated = true;
 
-    ctx.fillStyle = "white";
-    ctx.fillRect(150, 150, 200, 300);
+          // Delay = magic moment
+          setTimeout(() => {
+            applyCardChange(data.image, data.card);
+          }, 800);
+        }
+      }, 1000);
+    }
 
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4;
-    ctx.strokeRect(150, 150, 200, 300);
+    function applyCardChange(imageData, card) {
+      const img = new Image();
+      img.src = imageData;
 
-    ctx.fillStyle = "black";
-    ctx.font = "bold 40px Arial";
-    ctx.fillText(card, 170, 200);
+      img.onload = () => {
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-    document.getElementById('result').src = canvas.toDataURL();
-  };
-}
-</script>
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        ctx.drawImage(img, 0, 0);
+
+        // 🔧 Position + size (tweak these!)
+        const x = canvas.width * 0.45;
+        const y = canvas.height * 0.55;
+        const w = canvas.width * 0.25;
+        const h = canvas.height * 0.45;
+
+        // ✨ realism
+        ctx.globalAlpha = 0.95;
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetX = 5;
+        ctx.shadowOffsetY = 5;
+
+        // ✨ slight rotation
+        ctx.save();
+        ctx.translate(x + w/2, y + h/2);
+        ctx.rotate(-0.05);
+
+        // Card body
+        ctx.fillStyle = "white";
+        ctx.fillRect(-w/2, -h/2, w, h);
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(-w/2, -h/2, w, h);
+
+        // Card text
+        ctx.fillStyle = "black";
+        ctx.font = `bold ${w * 0.2}px Arial`;
+        ctx.fillText(card, -w/2 + 20, -h/2 + 50);
+
+        ctx.restore();
+
+        // Fade effect
+        const resultImg = document.getElementById('result');
+        resultImg.style.opacity = 0;
+
+        setTimeout(() => {
+          resultImg.src = canvas.toDataURL();
+          resultImg.style.opacity = 1;
+        }, 200);
+      };
+    }
+  </script>
 
 </body>
 </html>
