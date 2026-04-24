@@ -88,6 +88,7 @@
 }
 
     function applyCardChange(imageData, card) {
+      alert("Card update: " + card);
       const img = new Image();
       img.src = imageData;
 
@@ -103,7 +104,8 @@
         overlay.src = `https://via.placeholder.com/100x150?text=${card}`;
 
         overlay.onload = () => {
-          ctx.drawImage(overlay, 200, 200, 100, 150);
+          ctx.fillStyle = "red";
+ctx.fillRect(0, 0, 300, 300);
           document.getElementById('result').src = canvas.toDataURL();
         };
       };
